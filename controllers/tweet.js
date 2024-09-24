@@ -1,4 +1,8 @@
+const path = require("path");
+const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
 const { StatusCodes } = require("http-status-codes");
+
 const Tweet = require("../models/Tweet");
 const { NotFoundError, BadRequestError } = require("../errors");
 const Liketweet = require("../models/Liketweet");
@@ -6,7 +10,7 @@ const Retweet = require("../models/Retweet");
 
 const getAllTweets = async (req, res) => {
   const { userId } = req.params;
-  const tweets = await Tweet.find({ userId }).sort("-createdAt").lean();
+  const tweets = await Tweet.find({ user: userId }).sort("-createdAt").lean();
 
   const detailedTweetsPromises = tweets.map(async (singleTweet) => {
     const likesOfTweet = await Liketweet.countDocuments({
@@ -31,12 +35,32 @@ const getAllTweets = async (req, res) => {
 
 const createTweet = async (req, res) => {
   const { userId, name, username, avatar } = req.user;
+  const { content, parentTweet } = req.body;
+  const filesFields = req.files;
+  let mediaUrls = [];
+  if (filesFields && filesFields.media) {
+    // console.log(filesFields.media);
+    const mediaUrlsPromises = filesFields.media.map(async (mediaItem) => {
+      const filePath = mediaItem.path;
+      const res = await cloudinary.uploader.upload(filePath, {
+        use_filename: true,
+        folder: "tweetMedia",
+      });
+      fs.unlinkSync(path.join(filePath));
+      // console.log(res.secure_url);
+      return res.secure_url;
+    });
+    mediaUrls = await Promise.all(mediaUrlsPromises);
+  }
+
   const tweet = await Tweet.create({
-    userId,
-    userDisplayName: name,
+    user: userId,
+    name,
     username,
     userAvatar: avatar,
-    ...req.body,
+    media: mediaUrls,
+    content,
+    parentTweet,
   });
   res.status(StatusCodes.CREATED).json({ tweet });
 };
@@ -80,7 +104,7 @@ const updateTweet = async (req, res) => {
   }
 
   const tweet = await Tweet.findOneAndUpdate(
-    { _id: tweetId, userId },
+    { _id: tweetId, user: userId },
     { ...req.body },
     { runValidators: true, new: true }
   );
@@ -103,7 +127,7 @@ const deleteTweet = async (req, res) => {
     throw new NotFoundError(`No such tweet with tweet id ${tweetId}`);
   }
 
-  const tweet = await Tweet.findOneAndDelete({ _id: tweetId, userId });
+  const tweet = await Tweet.findOneAndDelete({ _id: tweetId, user: userId });
 
   if (!tweet) {
     throw new BadRequestError(

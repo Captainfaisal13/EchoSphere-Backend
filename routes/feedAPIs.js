@@ -11,9 +11,9 @@ const {
   getUser,
 } = require("../controllers/feedAPIs");
 
-router.route("/foryou").get(authenticationMiddleware, forYouFeed);
+// router.route("/foryou").get(authenticationMiddleware, forYouFeed);
 router.route("/following").get(authenticationMiddleware, followingFeed);
-router.route("/recents").get(authenticationMiddleware, recentsFeed);
+router.route("/recents").get(recentsFeed);
 router.route("/text").get(textFeed);
 router.route("/photos").get(photosFeed);
 router.route("/videos").get(videosFeed);

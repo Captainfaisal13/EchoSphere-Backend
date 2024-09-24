@@ -7,14 +7,9 @@ const {
   getFollowing,
 } = require("../controllers/follower");
 
-const { getUser } = require("../controllers/auth");
-
 const authenticationMiddleware = require("../middleware/authentication");
 
-router.route("/:userId").get(getUser);
-router
-  .route("/:userId/follow")
-  .post(authenticationMiddleware, followUnfollowUser);
+router.route("/:userId").post(authenticationMiddleware, followUnfollowUser);
 router.route("/:userId/followers").get(getFollowers);
-router.route("/:userId/following").get(getFollowing);
+router.route("/:userId/followings").get(getFollowing);
 module.exports = router;

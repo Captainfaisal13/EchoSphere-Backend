@@ -2,6 +2,19 @@ const express = require("express");
 const router = express.Router();
 const authenticationMiddleware = require("../middleware/authentication");
 
+// multer setup
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./tmp/my-uploads");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 const {
   getAllTweets,
   createTweet,
@@ -10,12 +23,20 @@ const {
   deleteTweet,
 } = require("../controllers/tweet");
 
-router.route("/").post(authenticationMiddleware, createTweet);
+router
+  .route("/")
+  .post(
+    [authenticationMiddleware, upload.fields([{ name: "media", maxCount: 4 }])],
+    createTweet
+  );
 router.route("/:userId/tweets").get(getAllTweets);
 router
   .route("/:tweetId")
   .get(getSingleTweet)
-  .patch(authenticationMiddleware, updateTweet)
+  .patch(
+    [authenticationMiddleware, upload.fields([{ name: "media", maxCount: 4 }])],
+    updateTweet
+  )
   .delete(authenticationMiddleware, deleteTweet);
 
 module.exports = router;

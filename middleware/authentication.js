@@ -1,28 +1,38 @@
 const { UnauthorizedError } = require("../errors");
-const jwt = require("jsonwebtoken");
+const { isTokenValid, attachCookiesToResponse } = require("../utils");
+const Token = require("../models/Token");
 
-const auth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+const auth = async (req, res, next) => {
+  const { refreshToken, accessToken } = req.signedCookies;
+  // console.log({ refreshToken, accessToken });
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new UnauthorizedError("No token provided");
-  }
-
-  // console.log(authHeader);
-
-  const token = authHeader.split(" ")[1];
-  // console.log(token);
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = {
-      userId: payload.userId,
-      name: payload.name,
-      username: payload.username,
-      avatar: payload.avatar,
-    };
+    if (accessToken) {
+      const payload = isTokenValid(accessToken);
+      req.user = payload.user;
+      return next();
+    }
+    payload = isTokenValid(refreshToken);
+
+    const exisitingToken = await Token.findOne({
+      user: payload.user.userId,
+      refreshToken: payload.refreshToken,
+    });
+
+    if (!exisitingToken) {
+      throw new UnauthorizedError("Authentication Invalid");
+    }
+
+    attachCookiesToResponse({
+      res,
+      user: payload.user,
+      refreshToken: payload.refreshToken,
+    });
+
+    req.user = payload.user;
     next();
   } catch (error) {
-    throw new UnauthorizedError("Not authorized to access this route");
+    throw new CustomError.UnauthenticatedError("Authentication Invalid");
   }
 };
 

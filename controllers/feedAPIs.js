@@ -1,5 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 const User = require("../models/User");
+const Tweet = require("../models/Tweet");
+const Follower = require("../models/Follower");
 const { NotFoundError } = require("../errors");
 
 const getUser = async (req, res) => {
@@ -26,22 +28,46 @@ const getUser = async (req, res) => {
 };
 
 const forYouFeed = async (req, res) => {
-  res.send("For you feed");
-};
-const followingFeed = async (req, res) => {
   res.send("Following feed");
 };
+
+const followingFeed = async (req, res) => {
+  const { userId } = req.user;
+  const followingFollower = await Follower.find({ userId });
+  const followingUsersIds = [];
+
+  followingFollower.forEach((item) => {
+    followingUsersIds.push(item.followerId);
+  });
+
+  console.log(followingUsersIds);
+
+  const followingTweets = await Tweet.find({
+    userId: { $in: [...followingUsersIds, userId] },
+  }).sort("-createdAt");
+
+  res.status(StatusCodes.OK).json({ followingTweets });
+  // const tweets = Tweet.find({})
+};
+
 const recentsFeed = async (req, res) => {
-  res.send("Recents feed");
+  const AllTweets = await Tweet.find({}).sort("-createdAt");
+  res.status(StatusCodes.OK).send({ AllTweets });
 };
+
 const textFeed = async (req, res) => {
-  res.send("Text feed");
+  const AllTweets = await Tweet.find({}).sort("-createdAt");
+  res.status(StatusCodes.OK).send({ AllTweets });
 };
+
 const photosFeed = async (req, res) => {
-  res.send("Photos feed");
+  const AllTweets = await Tweet.find({}).sort("-createdAt");
+  res.status(StatusCodes.OK).send({ AllTweets });
 };
+
 const videosFeed = async (req, res) => {
-  res.send("Videos feed");
+  const AllTweets = await Tweet.find({}).sort("-createdAt");
+  res.status(StatusCodes.OK).send({ AllTweets });
 };
 
 module.exports = {

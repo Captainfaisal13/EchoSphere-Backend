@@ -12,6 +12,7 @@ const errorHandlerMiddleware = require("./middleware/error-handler");
 
 // routes exports
 const authorizationRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
 const tweetRoutes = require("./routes/tweet");
 const likeRoutes = require("./routes/like");
 const retweetRoutes = require("./routes/retweet");
@@ -23,6 +24,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const xss = require("xss-clean");
 const rateLimiter = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
 
 // app.set("trust proxy", 1);
 // app.use(
@@ -35,6 +37,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(cors());
 app.use(xss());
+app.use(cookieParser(process.env.JWT_SECRET));
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -47,14 +50,15 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/auth", authorizationRoutes);
+app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/tweet", [tweetRoutes, likeRoutes, retweetRoutes]);
-app.use("/api/v1/user", followerRoutes);
+app.use("/api/v1/follow", followerRoutes);
 app.use("/api/v1/feed", feedAPIRoutes);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 const start = async () => {
   try {
