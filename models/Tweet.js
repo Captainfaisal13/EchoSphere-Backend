@@ -19,6 +19,10 @@ const TweetSchema = new mongoose.Schema(
     media: {
       type: [String],
     },
+    isLiked: {
+      type: Boolean,
+      default: false,
+    },
     userAvatar: {
       type: String,
       required: [true, "Please provide user avatar url"],

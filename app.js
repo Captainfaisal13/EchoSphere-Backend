@@ -33,9 +33,17 @@ const cookieParser = require("cookie-parser");
 //     max: 100, // limit each IP to 100 requests per windowMs
 //   })
 // );
+
+const corsOptions = {
+  origin: "http://localhost:3000", // Allow only this origin
+  credentials: true, // Allow cookies to be sent and received
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Define allowed methods
+  allowedHeaders: ["Content-Type"], // Define allowed headers
+};
+
 app.use(express.json());
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(xss());
 app.use(cookieParser(process.env.JWT_SECRET));
 

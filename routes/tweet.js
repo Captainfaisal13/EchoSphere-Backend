@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authenticationMiddleware = require("../middleware/authentication");
+const optionalAuthenticationMiddleware = require("../middleware/optionalAuthentication");
 
 // multer setup
 const multer = require("multer");
@@ -29,10 +30,12 @@ router
     [authenticationMiddleware, upload.fields([{ name: "media", maxCount: 4 }])],
     createTweet
   );
-router.route("/:userId/tweets").get(getAllTweets);
+router
+  .route("/:userId/tweets")
+  .get(optionalAuthenticationMiddleware, getAllTweets);
 router
   .route("/:tweetId")
-  .get(getSingleTweet)
+  .get(optionalAuthenticationMiddleware, getSingleTweet)
   .patch(
     [authenticationMiddleware, upload.fields([{ name: "media", maxCount: 4 }])],
     updateTweet

@@ -7,26 +7,13 @@ const Tweet = require("../models/Tweet");
 const { NotFoundError, BadRequestError } = require("../errors");
 const Liketweet = require("../models/Liketweet");
 const Retweet = require("../models/Retweet");
+const getDetailedTweets = require("../utils/detailedTweets");
 
 const getAllTweets = async (req, res) => {
   const { userId } = req.params;
   const tweets = await Tweet.find({ user: userId }).sort("-createdAt").lean();
 
-  const detailedTweetsPromises = tweets.map(async (singleTweet) => {
-    const likesOfTweet = await Liketweet.countDocuments({
-      tweetId: singleTweet._id,
-    });
-    const retweetsOfTweet = await Retweet.countDocuments({
-      tweetId: singleTweet._id,
-    });
-    return {
-      ...singleTweet,
-      likes_count: likesOfTweet,
-      retweets_count: retweetsOfTweet,
-    };
-  });
-
-  const detailedTweets = await Promise.all(detailedTweetsPromises);
+  const detailedTweets = await getDetailedTweets(tweets, req.user);
 
   res
     .status(StatusCodes.OK)
@@ -73,20 +60,11 @@ const getSingleTweet = async (req, res) => {
     throw new NotFoundError(`No such tweet exist with id ${tweetId}`);
   }
 
-  const likesOfTweet = await Liketweet.countDocuments({
-    tweetId: tweetId,
-  });
-  const retweetsOfTweet = await Retweet.countDocuments({
-    tweetId: tweetId,
-  });
+  const detailedTweets = await getDetailedTweets([tweet], req.user);
 
-  const detailedTweet = {
-    ...tweet,
-    likes_count: likesOfTweet,
-    retweets_count: retweetsOfTweet,
-  };
+  // console.log({ detailedTweets });
 
-  res.status(StatusCodes.OK).json({ detailedTweet });
+  res.status(StatusCodes.OK).json({ detailedTweet: detailedTweets[0] });
 };
 
 const updateTweet = async (req, res) => {
