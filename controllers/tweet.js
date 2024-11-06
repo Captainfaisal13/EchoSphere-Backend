@@ -8,6 +8,7 @@ const { NotFoundError, BadRequestError } = require("../errors");
 const Liketweet = require("../models/Liketweet");
 const Retweet = require("../models/Retweet");
 const getDetailedTweets = require("../utils/detailedTweets");
+const { fetchParents, fetchReplies } = require("../utils/helpers");
 
 const getAllTweets = async (req, res) => {
   const { userId } = req.params;
@@ -59,12 +60,24 @@ const getSingleTweet = async (req, res) => {
   if (!tweet) {
     throw new NotFoundError(`No such tweet exist with id ${tweetId}`);
   }
+  const parents = await fetchParents(tweetId);
+  const replies = await fetchReplies(tweetId);
 
   const detailedTweets = await getDetailedTweets([tweet], req.user);
+  const parentsDetailedTweet = await getDetailedTweets(parents, req.user);
+  const repliesDetailedTweet = await getDetailedTweets(replies, req.user);
+
+  res.status(StatusCodes.OK).json({
+    detailedTweet: detailedTweets[0],
+    parentsDetailedTweet,
+    repliesDetailedTweet,
+  });
+
+  // const detailedTweets = await getDetailedTweets([tweet], req.user);
 
   // console.log({ detailedTweets });
 
-  res.status(StatusCodes.OK).json({ detailedTweet: detailedTweets[0] });
+  // res.status(StatusCodes.OK).json({ detailedTweet: detailedTweets[0] });
 };
 
 const updateTweet = async (req, res) => {

@@ -1,5 +1,6 @@
 const Liketweet = require("../models/Liketweet");
 const Retweet = require("../models/Retweet");
+const Tweet = require("../models/Tweet");
 
 const getDetailedTweets = async (tweets, user) => {
   const detailedTweetsPromises = tweets.map(async (singleTweet) => {
@@ -8,6 +9,9 @@ const getDetailedTweets = async (tweets, user) => {
     });
     const retweetsOfTweet = await Retweet.countDocuments({
       tweetId: singleTweet._id,
+    });
+    const repliesOfTweet = await Tweet.countDocuments({
+      parentTweet: singleTweet._id,
     });
 
     let isLiked = false;
@@ -30,6 +34,7 @@ const getDetailedTweets = async (tweets, user) => {
       ...singleTweet,
       likes_count: likesOfTweet,
       retweets_count: retweetsOfTweet,
+      replies_count: repliesOfTweet,
       isLiked: !!isLiked,
       isRepost: !!isRepost,
     };

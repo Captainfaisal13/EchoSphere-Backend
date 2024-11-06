@@ -17,7 +17,7 @@ router.route("/following").get(authenticationMiddleware, followingFeed);
 router.route("/recents").get(optionalAuthenticationMiddleware, recentsFeed);
 router.route("/text").get(optionalAuthenticationMiddleware, textFeed);
 router.route("/photos").get(optionalAuthenticationMiddleware, photosFeed);
-router.route("/videos").get(authenticationMiddleware, videosFeed);
+router.route("/videos").get(optionalAuthenticationMiddleware, videosFeed);
 router.route("/user/:username").get(getUser);
 
 module.exports = router;
