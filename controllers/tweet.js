@@ -7,8 +7,7 @@ const Tweet = require("../models/Tweet");
 const { NotFoundError, BadRequestError } = require("../errors");
 const Liketweet = require("../models/Liketweet");
 const Retweet = require("../models/Retweet");
-const getDetailedTweets = require("../utils/detailedTweets");
-const { fetchParents, fetchReplies } = require("../utils/helpers");
+const { getDetailedTweets, fetchParents, fetchReplies } = require("../utils");
 
 const getAllTweets = async (req, res) => {
   const { userId } = req.params;

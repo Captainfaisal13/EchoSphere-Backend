@@ -2,6 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const Follower = require("../models/Follower");
 const User = require("../models/User");
 const { BadRequestError, NotFoundError } = require("../errors");
+const getDetailedUser = require("../utils/detailedUsers");
 
 const followUnfollowUser = async (req, res) => {
   const { userId: followerId } = req.params;
@@ -27,15 +28,49 @@ const followUnfollowUser = async (req, res) => {
 };
 
 const getFollowers = async (req, res) => {
-  const { userId } = req.params;
-  const followers = await Follower.find({ followerId: userId });
-  res.status(StatusCodes.OK).send({ followers });
+  // logic to get the followers using userId or username through params by the help of queryParams
+  const isUsername = req.query.isUsername;
+  let { userId } = req.params;
+
+  if (isUsername === "true") {
+    const user = await User.findOne({ username: userId }).lean();
+    if (!user) {
+      throw new NotFoundError(
+        `No such user exists with the username: ${userId}`
+      );
+    }
+    userId = user._id;
+  }
+
+  const followers = await Follower.find({ followerId: userId }).lean();
+  const detailedFollowers = await getDetailedUser(
+    followers,
+    req.user,
+    "followers"
+  );
+  res.status(StatusCodes.OK).send({ detailedFollowers });
 };
 
 const getFollowing = async (req, res) => {
-  const { userId } = req.params;
-  const following = await Follower.find({ userId });
-  res.status(StatusCodes.OK).send({ following });
+  const isUsername = req.query.isUsername;
+  let { userId } = req.params;
+
+  if (isUsername === "true") {
+    const user = await User.findOne({ username: userId }).lean();
+    if (!user) {
+      throw new NotFoundError(
+        `No such user exists with the username: ${userId}`
+      );
+    }
+    userId = user._id;
+  }
+  const following = await Follower.find({ userId }).lean();
+  const detailedFollowings = await getDetailedUser(
+    following,
+    req.user,
+    "followings"
+  );
+  res.status(StatusCodes.OK).send({ detailedFollowings });
 };
 
 module.exports = { followUnfollowUser, getFollowers, getFollowing };

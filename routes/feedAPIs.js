@@ -18,6 +18,6 @@ router.route("/recents").get(optionalAuthenticationMiddleware, recentsFeed);
 router.route("/text").get(optionalAuthenticationMiddleware, textFeed);
 router.route("/photos").get(optionalAuthenticationMiddleware, photosFeed);
 router.route("/videos").get(optionalAuthenticationMiddleware, videosFeed);
-router.route("/user/:username").get(getUser);
+router.route("/user/:username").get(optionalAuthenticationMiddleware, getUser);
 
 module.exports = router;

@@ -4,26 +4,30 @@ const Tweet = require("../models/Tweet");
 const Follower = require("../models/Follower");
 const { NotFoundError } = require("../errors");
 const getDetailedTweets = require("../utils/detailedTweets");
+const getDetailedUser = require("../utils/detailedUsers");
 
 const getUser = async (req, res) => {
   const { username } = req.params;
 
-  const user = await User.findOne({ username });
+  const user = await User.findOne({ username }).lean();
   if (!user) {
     throw new NotFoundError(`No such user exists with username ${username}`);
   }
 
+  const detailedUser = await getDetailedUser([user], req.user);
+
+  const followers = await Follower.countDocuments({
+    followerId: user._id,
+  });
+  const followings = await Follower.countDocuments({
+    userId: user._id,
+  });
+
   res.status(StatusCodes.CREATED).json({
     user: {
-      id: user._id,
-      name: user.name,
-      username: user.username,
-      email: user.email,
-      bio: user.bio,
-      avatar: user.avatar,
-      cover: user.cover,
-      followers_count: 100,
-      following_count: 10,
+      ...detailedUser[0],
+      followerCount: followers,
+      followingCount: followings,
     },
   });
 };
