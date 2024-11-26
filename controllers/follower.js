@@ -48,7 +48,7 @@ const getFollowers = async (req, res) => {
     req.user,
     "followers"
   );
-  res.status(StatusCodes.OK).send({ detailedFollowers });
+  res.status(StatusCodes.OK).send({ response: detailedFollowers });
 };
 
 const getFollowing = async (req, res) => {
@@ -70,7 +70,7 @@ const getFollowing = async (req, res) => {
     req.user,
     "followings"
   );
-  res.status(StatusCodes.OK).send({ detailedFollowings });
+  res.status(StatusCodes.OK).send({ response: detailedFollowings });
 };
 
 module.exports = { followUnfollowUser, getFollowers, getFollowing };

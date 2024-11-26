@@ -56,17 +56,17 @@ const updateUser = async (req, res) => {
   await user.save();
 
   const userTweets = await Tweet.updateMany(
-    { userId: req.user.userId },
+    { user: req.user.userId },
     {
       $set: {
         userAvatar: user.avatar,
-        userDisplayName: user.name,
+        name: user.name,
         username: user.username,
       },
     }
   );
 
-  // console.log({ userTweets });
+  console.log({ userTweets });
 
   const tokenUser = createTokenUser(user);
   const token = await Token.findOne({ user: user._id });
@@ -75,7 +75,7 @@ const updateUser = async (req, res) => {
     user: tokenUser,
     refreshToken: token.refreshToken,
   });
-  res.status(StatusCodes.OK).json({ user });
+  res.status(StatusCodes.OK).json({ response: user });
 };
 
 module.exports = {

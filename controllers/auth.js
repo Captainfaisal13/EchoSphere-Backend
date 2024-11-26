@@ -13,7 +13,7 @@ const signUp = async (req, res) => {
   const refreshToken = crypto.randomBytes(40).toString("hex");
   const token = await Token.create({ refreshToken, user: user._id });
   attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-  res.status(StatusCodes.CREATED).json({ user: tokenUser });
+  res.status(StatusCodes.CREATED).json({ response: tokenUser });
 };
 
 const login = async (req, res) => {
@@ -44,14 +44,14 @@ const login = async (req, res) => {
   if (exisitingToken) {
     refreshToken = exisitingToken.refreshToken;
     attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-    res.status(StatusCodes.OK).json({ user: tokenUser });
+    res.status(StatusCodes.OK).json({ response: tokenUser });
     return;
   }
 
   refreshToken = crypto.randomBytes(40).toString("hex");
   const token = await Token.create({ refreshToken, user: user._id });
   attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-  res.status(StatusCodes.OK).json({ user: tokenUser });
+  res.status(StatusCodes.OK).json({ response: tokenUser });
 };
 
 module.exports = { signUp, login };

@@ -10,6 +10,10 @@ const {
   photosFeed,
   videosFeed,
   getUser,
+  getUserReplies,
+  getUserPosts,
+  getUserLikes,
+  getUserMedia,
 } = require("../controllers/feedAPIs");
 
 // router.route("/foryou").get(authenticationMiddleware, forYouFeed);
@@ -18,6 +22,18 @@ router.route("/recents").get(optionalAuthenticationMiddleware, recentsFeed);
 router.route("/text").get(optionalAuthenticationMiddleware, textFeed);
 router.route("/photos").get(optionalAuthenticationMiddleware, photosFeed);
 router.route("/videos").get(optionalAuthenticationMiddleware, videosFeed);
+router
+  .route("/user/:username/posts")
+  .get(optionalAuthenticationMiddleware, getUserPosts);
+router
+  .route("/user/:username/replies")
+  .get(optionalAuthenticationMiddleware, getUserReplies);
+router
+  .route("/user/:username/media")
+  .get(optionalAuthenticationMiddleware, getUserMedia);
+router
+  .route("/user/:username/likes")
+  .get(optionalAuthenticationMiddleware, getUserLikes);
 router.route("/user/:username").get(optionalAuthenticationMiddleware, getUser);
 
 module.exports = router;

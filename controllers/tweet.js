@@ -67,16 +67,12 @@ const getSingleTweet = async (req, res) => {
   const repliesDetailedTweet = await getDetailedTweets(replies, req.user);
 
   res.status(StatusCodes.OK).json({
-    detailedTweet: detailedTweets[0],
-    parentsDetailedTweet,
-    repliesDetailedTweet,
+    response: {
+      detailedTweet: detailedTweets[0],
+      parentsDetailedTweet,
+      repliesDetailedTweet,
+    },
   });
-
-  // const detailedTweets = await getDetailedTweets([tweet], req.user);
-
-  // console.log({ detailedTweets });
-
-  // res.status(StatusCodes.OK).json({ detailedTweet: detailedTweets[0] });
 };
 
 const updateTweet = async (req, res) => {
