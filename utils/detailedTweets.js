@@ -1,3 +1,4 @@
+const BookmarkTweet = require("../models/BookmarkTweet");
 const Liketweet = require("../models/Liketweet");
 const Retweet = require("../models/Retweet");
 const Tweet = require("../models/Tweet");
@@ -30,6 +31,14 @@ const getDetailedTweets = async (tweets, user) => {
       });
     }
 
+    let isBookmarked = false;
+    if (user) {
+      isBookmarked = await BookmarkTweet.exists({
+        userId: user.userId,
+        tweetId: singleTweet._id,
+      });
+    }
+
     return {
       ...singleTweet,
       likes_count: likesOfTweet,
@@ -37,6 +46,7 @@ const getDetailedTweets = async (tweets, user) => {
       replies_count: repliesOfTweet,
       isLiked: !!isLiked,
       isRepost: !!isRepost,
+      isBookmarked: !!isBookmarked,
     };
   });
 

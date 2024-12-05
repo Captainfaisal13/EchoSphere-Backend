@@ -16,6 +16,8 @@ const userRoutes = require("./routes/user");
 const tweetRoutes = require("./routes/tweet");
 const likeRoutes = require("./routes/like");
 const retweetRoutes = require("./routes/retweet");
+const shareTweeetRoutes = require("./routes/share");
+const bookmarkTweetRoutes = require("./routes/bookmark");
 const followerRoutes = require("./routes/follower");
 const feedAPIRoutes = require("./routes/feedAPIs");
 
@@ -59,7 +61,13 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1/auth", authorizationRoutes);
 app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/tweet", [tweetRoutes, likeRoutes, retweetRoutes]);
+app.use("/api/v1/tweet", [
+  bookmarkTweetRoutes,
+  tweetRoutes,
+  likeRoutes,
+  retweetRoutes,
+  shareTweeetRoutes,
+]);
 app.use("/api/v1/follow", followerRoutes);
 app.use("/api/v1/feed", feedAPIRoutes);
 
