@@ -2,6 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const Tweet = require("../models/Tweet");
 const { BadRequestError, NotFoundError } = require("../errors");
 const BookmarkTweet = require("../models/BookmarkTweet");
+const { getDetailedTweets } = require("../utils");
 
 const bookmarkUnbookmarkTweet = async (req, res) => {
   const { tweetId } = req.params;
@@ -23,8 +24,28 @@ const bookmarkUnbookmarkTweet = async (req, res) => {
 
 const getAllbookmarkTweets = async (req, res) => {
   const { userId } = req.user;
-  const bookmarks = await BookmarkTweet.find({ userId });
-  res.status(StatusCodes.OK).json({ bookmarks });
+
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const bookmarks = await BookmarkTweet.find({ userId })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const tweets = await Tweet.find({
+    _id: { $in: bookmarks.map((bookmark) => bookmark.tweetId) },
+  }).lean();
+
+  const detailedTweets = await getDetailedTweets(tweets, req.user);
+
+  res.status(StatusCodes.OK).json({
+    page,
+    limit,
+    nbHits: detailedTweets.length,
+    response: detailedTweets,
+  });
 };
 
 module.exports = { bookmarkUnbookmarkTweet, getAllbookmarkTweets };
