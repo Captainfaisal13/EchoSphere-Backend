@@ -1,3 +1,16 @@
+# Dependencies
+node_modules
 
-# local env files
-.env*.local
+# yarn error logs
+yarn-error.log
+
+# Environment varibales
+.env*
+!.env*.example
+
+# Code coverage
+coverage
+yarn.lock
+firebase.json
+package-lock.json
+/src/utils/images/logo.png
