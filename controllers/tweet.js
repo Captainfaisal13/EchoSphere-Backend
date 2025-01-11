@@ -29,9 +29,17 @@ const createTweet = async (req, res) => {
     // console.log(filesFields.media);
     const mediaUrlsPromises = filesFields.media.map(async (mediaItem) => {
       const filePath = mediaItem.path;
+      let resourceType = "image"; // Default resource type
+
+      // Determine if the file is a video based on its extension
+      if (filePath.match(/\.(mp4|webm|mkv|mov)$/i)) {
+        resourceType = "video";
+      }
+
       const res = await cloudinary.uploader.upload(filePath, {
         use_filename: true,
         folder: "tweetMedia",
+        resource_type: resourceType,
       });
       fs.unlinkSync(path.join(filePath));
       // console.log(res.secure_url);

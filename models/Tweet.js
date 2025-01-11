@@ -9,7 +9,8 @@ const TweetSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: [true, "Please provide tweet content"],
+      // required: [true, "Please provide tweet content"],
+      default: "",
     },
     parentTweet: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,7 +50,7 @@ TweetSchema.methods.uploadFile = async function (filePath) {
     folder: "tweetMedia",
   });
   fs.unlinkSync(path.join(filePath));
-  console.log(res.secure_url);
+  // console.log(res.secure_url);
   return res.secure_url;
 };
 

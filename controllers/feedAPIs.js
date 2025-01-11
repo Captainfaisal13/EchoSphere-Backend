@@ -212,11 +212,14 @@ const textFeed = async (req, res) => {
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const tweets = await Tweet.find({})
+  const tweets = await Tweet.find({
+    $or: [{ media: { $exists: false } }, { media: { $size: 0 } }],
+  })
     .skip(skip)
     .limit(limit)
     .sort("-createdAt")
     .lean();
+
   const AllTweets = await getDetailedTweets(tweets, req.user);
 
   res.status(StatusCodes.OK).json({
@@ -232,11 +235,15 @@ const photosFeed = async (req, res) => {
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const tweets = await Tweet.find({})
+  const tweets = await Tweet.find({
+    media: { $exists: true, $ne: [] },
+    media: { $elemMatch: { $regex: /\.(jpg|jpeg|png|gif|bmp|svg|webp)$/i } },
+  })
     .skip(skip)
     .limit(limit)
     .sort("-createdAt")
     .lean();
+
   const AllTweets = await getDetailedTweets(tweets, req.user);
 
   res.status(StatusCodes.OK).json({
@@ -252,7 +259,10 @@ const videosFeed = async (req, res) => {
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const tweets = await Tweet.find({})
+  const tweets = await Tweet.find({
+    media: { $exists: true, $ne: [] },
+    media: { $elemMatch: { $regex: /\.(mp4|webm|mkv|mov|avi)$/i } },
+  })
     .skip(skip)
     .limit(limit)
     .sort("-createdAt")
@@ -264,6 +274,40 @@ const videosFeed = async (req, res) => {
     limit,
     nbHits: AllTweets.length,
     response: AllTweets,
+  });
+};
+
+const getUsers = async (req, res) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const topSuggestions = ["captainfaisal", "patilrohit", "nadeemkhan"];
+  // Fetch priority users from the topSuggestions array
+  const priorityUsers = await User.find({
+    username: { $in: topSuggestions, $ne: req.user?.username },
+  })
+    .select("-password")
+    .lean();
+
+  // Fetch remaining users, excluding those in topSuggestions, sorted by createdAt
+  const remainingUsers = await User.find({
+    username: { $nin: [req.user?.username, ...topSuggestions] },
+  })
+    .select("-password")
+    .skip(skip)
+    .limit(limit)
+    .sort("-createdAt")
+    .lean();
+
+  // Combine both results
+  const combinedUsers = [...priorityUsers, ...remainingUsers];
+  const detailedUsers = await getDetailedUser(combinedUsers, req.user, "none");
+  res.status(StatusCodes.OK).json({
+    page,
+    limit,
+    nbHits: detailedUsers.length,
+    response: detailedUsers,
   });
 };
 
@@ -279,4 +323,5 @@ module.exports = {
   getUserReplies,
   getUserLikes,
   getUserMedia,
+  getUsers,
 };

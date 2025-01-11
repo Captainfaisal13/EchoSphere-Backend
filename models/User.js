@@ -83,7 +83,7 @@ UserSchema.methods.uploadFile = async function (filePath, field) {
     folder: "avatars",
   });
   fs.unlinkSync(path.join(filePath));
-  console.log(res.secure_url);
+  // console.log(res.secure_url);
   return res.secure_url;
 };
 

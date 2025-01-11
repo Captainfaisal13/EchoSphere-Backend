@@ -14,6 +14,7 @@ const {
   getUserPosts,
   getUserLikes,
   getUserMedia,
+  getUsers,
 } = require("../controllers/feedAPIs");
 
 // router.route("/foryou").get(authenticationMiddleware, forYouFeed);
@@ -35,5 +36,6 @@ router
   .route("/user/:username/likes")
   .get(optionalAuthenticationMiddleware, getUserLikes);
 router.route("/user/:username").get(optionalAuthenticationMiddleware, getUser);
+router.route("/getUsers").get(optionalAuthenticationMiddleware, getUsers);
 
 module.exports = router;
