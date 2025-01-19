@@ -137,7 +137,15 @@ const getUserMedia = async (req, res) => {
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const tweets = await Tweet.find({ user: user._id })
+  const tweets = await Tweet.find({
+    user: user._id,
+    media: { $exists: true, $ne: [] },
+    media: {
+      $elemMatch: {
+        $regex: /\.(jpg|jpeg|png|gif|bmp|svg|webp|mp4|webm|mkv|mov|avi)$/i,
+      },
+    },
+  })
     .skip(skip)
     .limit(limit)
     .lean();
@@ -283,9 +291,22 @@ const getUsers = async (req, res) => {
   const skip = (page - 1) * limit;
 
   const topSuggestions = ["captainfaisal", "patilrohit", "nadeemkhan"];
+
+  // to whom i am following
+  let followingUserIds = [];
+  if (req.user) {
+    const followingUsers = await Follower.find({ userId: req.user?.userId })
+      ?.select("followerId")
+      ?.lean();
+    followingUserIds = followingUsers.map((f) => f.followerId.toString());
+  }
+
+  // console.log({ followingUsers });
+
   // Fetch priority users from the topSuggestions array
   const priorityUsers = await User.find({
     username: { $in: topSuggestions, $ne: req.user?.username },
+    _id: { $nin: followingUserIds },
   })
     .select("-password")
     .lean();
@@ -293,6 +314,7 @@ const getUsers = async (req, res) => {
   // Fetch remaining users, excluding those in topSuggestions, sorted by createdAt
   const remainingUsers = await User.find({
     username: { $nin: [req.user?.username, ...topSuggestions] },
+    _id: { $nin: followingUserIds },
   })
     .select("-password")
     .skip(skip)
@@ -302,12 +324,12 @@ const getUsers = async (req, res) => {
 
   // Combine both results
   const combinedUsers = [...priorityUsers, ...remainingUsers];
-  const detailedUsers = await getDetailedUser(combinedUsers, req.user, "none");
+  // const detailedUsers = await getDetailedUser(combinedUsers, req.user, "none");
   res.status(StatusCodes.OK).json({
     page,
     limit,
-    nbHits: detailedUsers.length,
-    response: detailedUsers,
+    nbHits: combinedUsers.length,
+    response: combinedUsers,
   });
 };
 
