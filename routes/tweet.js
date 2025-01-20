@@ -1,5 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
 const authenticationMiddleware = require("../middleware/authentication");
 const optionalAuthenticationMiddleware = require("../middleware/optionalAuthentication");
 
@@ -8,7 +11,9 @@ const multer = require("multer");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./tmp/my-uploads");
+    const tmpDir = path.join(os.tmpdir(), "my-uploads");
+    fs.mkdirSync(tmpDir, { recursive: true }); // Ensure the directory exists
+    cb(null, tmpDir);
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);

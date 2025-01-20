@@ -80,7 +80,7 @@ UserSchema.methods.comparePassword = async function (cadidatePassword) {
 UserSchema.methods.uploadFile = async function (filePath, field) {
   const res = await cloudinary.uploader.upload(filePath, {
     use_filename: true,
-    folder: "avatars",
+    folder: field,
   });
   fs.unlinkSync(path.join(filePath));
   // console.log(res.secure_url);
