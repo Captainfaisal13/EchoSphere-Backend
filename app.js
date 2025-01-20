@@ -37,7 +37,7 @@ const cookieParser = require("cookie-parser");
 // );
 
 const corsOptions = {
-  origin: process.env.FRONTEND_URL, // Allow only this origin
+  origin: "http://localhost:3000", // Allow only this origin
   credentials: true, // Allow cookies to be sent and received
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Define allowed methods
   allowedHeaders: ["Content-Type"], // Define allowed headers
