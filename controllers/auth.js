@@ -57,18 +57,28 @@ const login = async (req, res) => {
 const logout = async (req, res) => {
   console.log({ user: req.user });
 
+  // Delete the refresh token from the database
   await Token.findOneAndDelete({ user: req.user.userId });
+
+  // Clear accessToken cookie
   res.cookie("accessToken", "logout", {
     httpOnly: true,
-    expires: new Date(Date.now()),
+    expires: new Date(0), // Expire immediately
     sameSite: "None",
+    secure: process.env.NODE_ENV === "production", // Ensure the cookie is sent over HTTPS
+    path: "/", // Clear cookie on the entire domain
   });
+
+  // Clear refreshToken cookie
   res.cookie("refreshToken", "logout", {
     httpOnly: true,
-    expires: new Date(Date.now()),
+    expires: new Date(0), // Expire immediately
     sameSite: "None",
+    secure: process.env.NODE_ENV === "production", // Ensure the cookie is sent over HTTPS
+    path: "/", // Clear cookie on the entire domain
   });
-  res.status(StatusCodes.OK).json({ response: "user logged out!" });
+
+  res.status(StatusCodes.OK).json({ response: "User logged out!" });
 };
 
 module.exports = { signUp, login, logout };
