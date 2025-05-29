@@ -25,7 +25,12 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, "Please provide password"],
+    required: [
+      function () {
+        return !this.isOAuth;
+      },
+      "Please provide password",
+    ],
     minLength: 6,
   },
   username: {
@@ -34,6 +39,11 @@ const UserSchema = new mongoose.Schema({
     minLength: 3,
     maxLength: 30,
     unique: [true, "username must be unique"],
+  },
+  isOAuth: {
+    type: Boolean,
+    required: [true, "Please provide isOAuth flag"],
+    default: false,
   },
   bio: {
     type: String,
