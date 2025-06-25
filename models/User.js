@@ -56,6 +56,10 @@ const UserSchema = new mongoose.Schema({
   cover: {
     type: String,
   },
+  unreadNotificationsCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 UserSchema.pre("save", async function () {

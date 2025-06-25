@@ -8,6 +8,8 @@ const { NotFoundError, BadRequestError } = require("../errors");
 const Liketweet = require("../models/Liketweet");
 const Retweet = require("../models/Retweet");
 const { getDetailedTweets, fetchParents, fetchReplies } = require("../utils");
+const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 const getAllTweets = async (req, res) => {
   const { userId } = req.params;
@@ -22,7 +24,7 @@ const getAllTweets = async (req, res) => {
 
 const createTweet = async (req, res) => {
   const { userId, name, username, avatar } = req.user;
-  const { content, parentTweet } = req.body;
+  const { content, parentTweet: parentTweetId } = req.body;
   const filesFields = req.files;
   let mediaUrls = [];
   if (filesFields && filesFields.media) {
@@ -48,6 +50,17 @@ const createTweet = async (req, res) => {
     mediaUrls = await Promise.all(mediaUrlsPromises);
   }
 
+  let parentTweet;
+  if (parentTweetId) {
+    parentTweet = await Tweet.findById(parentTweetId);
+
+    if (!parentTweet) {
+      throw new BadRequestError(
+        `No such parent tweet with id : ${parentTweetId}`
+      );
+    }
+  }
+
   const tweet = await Tweet.create({
     user: userId,
     name,
@@ -55,8 +68,24 @@ const createTweet = async (req, res) => {
     userAvatar: avatar,
     media: mediaUrls,
     content,
-    parentTweet,
+    parentTweet: parentTweetId,
   });
+
+  if (parentTweetId && parentTweet.user.toString() !== userId) {
+    // creating notification when user is replying to a tweet
+    await Notification.create({
+      recipient: parentTweet.user,
+      sender: userId,
+      type: "reply",
+      tweet: parentTweetId,
+      repliedTweet: tweet._id,
+    });
+
+    await User.findByIdAndUpdate(parentTweet.user, {
+      $inc: { unreadNotificationsCount: 1 },
+    });
+  }
+
   res.status(StatusCodes.CREATED).json({ tweet });
 };
 
@@ -128,9 +157,24 @@ const deleteTweet = async (req, res) => {
       `tweet ${tweetId} deos not belong to user ${userId}`
     );
   }
-
+  const isReplyTweet = tweet.parentTweet;
   const deleteLikes = await Liketweet.deleteMany({ tweetId });
   const deleteRetweets = await Retweet.deleteMany({ tweetId });
+
+  // deleting notification if it was a reply tweet
+  if (isReplyTweet) {
+    const parentTweet = await Tweet.findById(tweet.parentTweet);
+    await Notification.findOneAndDelete({
+      recipient: parentTweet.user,
+      sender: userId,
+      type: "reply",
+      tweet: parentTweet._id,
+      repliedTweet: tweet._id,
+    });
+    await User.findByIdAndUpdate(parentTweet.user, {
+      $inc: { unreadNotificationsCount: -1 },
+    });
+  }
 
   res.status(StatusCodes.OK).send("Deleted Successfully");
 };

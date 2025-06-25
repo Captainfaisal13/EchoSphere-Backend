@@ -2,6 +2,8 @@ const { StatusCodes } = require("http-status-codes");
 const Retweet = require("../models/Retweet");
 const Tweet = require("../models/Tweet");
 const { BadRequestError, NotFoundError } = require("../errors");
+const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 const retweetTweet = async (req, res) => {
   const { tweetId } = req.params;
@@ -17,8 +19,34 @@ const retweetTweet = async (req, res) => {
 
   if (!undoretweet) {
     const retweet = await Retweet.create({ userId, tweetId });
+
+    // creating notification
+    if (tweet.user.toString() !== userId) {
+      await Notification.create({
+        recipient: tweet.user,
+        sender: userId,
+        type: "retweet",
+        tweet: tweet._id,
+      });
+      await User.findByIdAndUpdate(tweet.user, {
+        $inc: { unreadNotificationsCount: 1 },
+      });
+    }
     return res.status(StatusCodes.CREATED).json({ retweet });
   }
+
+  // deleting notification
+  await Notification.findOneAndDelete({
+    recipient: tweet.user,
+    sender: userId,
+    type: "retweet",
+    tweet: tweet._id,
+  });
+
+  await User.findByIdAndUpdate(tweet.user, {
+    $inc: { unreadNotificationsCount: -1 },
+  });
+
   res.status(StatusCodes.CREATED).json({ undoretweet });
 };
 

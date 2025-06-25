@@ -24,7 +24,12 @@ const signUp = async (req, res) => {
   const refreshToken = crypto.randomBytes(40).toString("hex");
   const token = await Token.create({ refreshToken, user: user._id });
   attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-  res.status(StatusCodes.CREATED).json({ response: tokenUser });
+  res.status(StatusCodes.CREATED).json({
+    response: {
+      ...tokenUser,
+      unreadNotificationsCount: user.unreadNotificationsCount,
+    },
+  });
 };
 
 const login = async (req, res) => {
@@ -61,14 +66,24 @@ const login = async (req, res) => {
   if (exisitingToken) {
     refreshToken = exisitingToken.refreshToken;
     attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-    res.status(StatusCodes.OK).json({ response: tokenUser });
+    res.status(StatusCodes.OK).json({
+      response: {
+        ...tokenUser,
+        unreadNotificationsCount: user.unreadNotificationsCount,
+      },
+    });
     return;
   }
 
   refreshToken = crypto.randomBytes(40).toString("hex");
   const token = await Token.create({ refreshToken, user: user._id });
   attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-  res.status(StatusCodes.OK).json({ response: tokenUser });
+  res.status(StatusCodes.OK).json({
+    response: {
+      ...tokenUser,
+      unreadNotificationsCount: user.unreadNotificationsCount,
+    },
+  });
 };
 
 const loginWithGoogle = async (req, res) => {
@@ -123,14 +138,24 @@ const loginWithGoogle = async (req, res) => {
   if (exisitingToken) {
     refreshToken = exisitingToken.refreshToken;
     attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-    res.status(StatusCodes.OK).json({ response: tokenUser });
+    res.status(StatusCodes.OK).json({
+      response: {
+        ...tokenUser,
+        unreadNotificationsCount: user.unreadNotificationsCount,
+      },
+    });
     return;
   }
 
   refreshToken = crypto.randomBytes(40).toString("hex");
   const token = await Token.create({ refreshToken, user: user._id });
   attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-  res.status(StatusCodes.OK).json({ response: tokenUser });
+  res.status(StatusCodes.OK).json({
+    response: {
+      ...tokenUser,
+      unreadNotificationsCount: user.unreadNotificationsCount,
+    },
+  });
 };
 
 const logout = async (req, res) => {

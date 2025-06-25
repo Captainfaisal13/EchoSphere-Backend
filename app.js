@@ -20,6 +20,7 @@ const shareTweeetRoutes = require("./routes/share");
 const bookmarkTweetRoutes = require("./routes/bookmark");
 const followerRoutes = require("./routes/follower");
 const feedAPIRoutes = require("./routes/feedAPIs");
+const notificationRoutes = require("./routes/notification");
 
 // extra security packages
 const helmet = require("helmet");
@@ -37,6 +38,7 @@ const cookieParser = require("cookie-parser");
 // );
 
 const corsOptions = {
+  // origin: "http://localhost:3001", // Allow only this origin
   origin: process.env.FRONTEND_URL, // Allow only this origin
   credentials: true, // Allow cookies to be sent and received
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Define allowed methods
@@ -70,6 +72,7 @@ app.use("/api/v1/tweet", [
 ]);
 app.use("/api/v1/follow", followerRoutes);
 app.use("/api/v1/feed", feedAPIRoutes);
+app.use("/api/v1/notification", notificationRoutes);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

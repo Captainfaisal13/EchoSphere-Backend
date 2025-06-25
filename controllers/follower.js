@@ -3,10 +3,11 @@ const Follower = require("../models/Follower");
 const User = require("../models/User");
 const { BadRequestError, NotFoundError } = require("../errors");
 const getDetailedUser = require("../utils/detailedUsers");
+const Notification = require("../models/Notification");
 
 const followUnfollowUser = async (req, res) => {
-  const { userId: followerId } = req.params;
-  const { userId: followingId } = req.user;
+  const { userId: followerId } = req.params; // getting followed
+  const { userId: followingId } = req.user; // me following
 
   const follower = await User.findOne({ _id: followerId });
 
@@ -22,8 +23,35 @@ const followUnfollowUser = async (req, res) => {
   if (!unfollowed) {
     // user is asking to follow
     const followed = await Follower.create({ userId: followingId, followerId });
+
+    // creating notification
+    if (followerId !== followingId) {
+      await Notification.create({
+        recipient: followerId,
+        sender: followingId,
+        type: "follow",
+      });
+
+      await User.findByIdAndUpdate(followerId, {
+        $inc: { unreadNotificationsCount: 1 },
+      });
+    }
+
     return res.status(StatusCodes.OK).send({ followed });
   }
+
+  // deleting notification
+  await Notification.findOneAndDelete({
+    recipient: followerId,
+    sender: followingId,
+    type: "follow",
+  });
+
+  // deleting the counter as well
+  await User.findByIdAndUpdate(followerId, {
+    $inc: { unreadNotificationsCount: -1 },
+  });
+
   res.status(StatusCodes.OK).send({ unfollowed });
 };
 
