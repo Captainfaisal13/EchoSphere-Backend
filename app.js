@@ -28,6 +28,7 @@ const cors = require("cors");
 const xss = require("xss-clean");
 const rateLimiter = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
+const { Server } = require("socket.io");
 
 // app.set("trust proxy", 1);
 // app.use(
@@ -38,12 +39,46 @@ const cookieParser = require("cookie-parser");
 // );
 
 const corsOptions = {
-  // origin: "http://localhost:3001", // Allow only this origin
+  // origin: ["http://localhost:3000", "http://localhost:3001"], // Allow only this origin
   origin: process.env.FRONTEND_URL, // Allow only this origin
   credentials: true, // Allow cookies to be sent and received
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Define allowed methods
   allowedHeaders: ["Content-Type"], // Define allowed headers
 };
+
+// creating a socket.io server
+const http = require("http");
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    // origin: ["http://localhost:3000", "http://localhost:3001"], // Allow only this origin
+    origin: process.env.FRONTEND_URL, // Allow only this origin
+    credentials: true,
+  },
+});
+
+let onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+  // Register user with their userId (sent from client)
+  socket.on("register", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+
+  // Cleanup on disconnect
+  socket.on("disconnect", () => {
+    for (let [key, value] of onlineUsers) {
+      if (value === socket.id) {
+        onlineUsers.delete(key);
+        break;
+      }
+    }
+  });
+});
+
+app.set("io", io); // allow access from route handlers
+app.set("onlineUsers", onlineUsers);
 
 app.use(express.json());
 app.use(helmet());
@@ -82,7 +117,7 @@ const port = process.env.PORT || 5000;
 const start = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    app.listen(port, () => console.log(`Server listening on port ${port}`));
+    server.listen(port, () => console.log(`Server listening on port ${port}`));
   } catch (error) {
     console.log(error);
   }

@@ -4,6 +4,7 @@ const User = require("../models/User");
 const { BadRequestError, NotFoundError } = require("../errors");
 const getDetailedUser = require("../utils/detailedUsers");
 const Notification = require("../models/Notification");
+const { pushNotification } = require("../utils/pushNotification");
 
 const followUnfollowUser = async (req, res) => {
   const { userId: followerId } = req.params; // getting followed
@@ -35,6 +36,14 @@ const followUnfollowUser = async (req, res) => {
       await User.findByIdAndUpdate(followerId, {
         $inc: { unreadNotificationsCount: 1 },
       });
+      // pushing notification to the user
+      pushNotification(
+        req,
+        followerId,
+        followingId,
+        "follow",
+        `You got followed by ${req.user.username}.`
+      );
     }
 
     return res.status(StatusCodes.OK).send({ followed });

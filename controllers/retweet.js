@@ -4,6 +4,7 @@ const Tweet = require("../models/Tweet");
 const { BadRequestError, NotFoundError } = require("../errors");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const { pushNotification } = require("../utils/pushNotification");
 
 const retweetTweet = async (req, res) => {
   const { tweetId } = req.params;
@@ -31,6 +32,14 @@ const retweetTweet = async (req, res) => {
       await User.findByIdAndUpdate(tweet.user, {
         $inc: { unreadNotificationsCount: 1 },
       });
+      // pushing notification to the user
+      pushNotification(
+        req,
+        tweet.user.toString(),
+        userId,
+        "retweet",
+        `Your echo got retweeted by ${req.user.username}.`
+      );
     }
     return res.status(StatusCodes.CREATED).json({ retweet });
   }

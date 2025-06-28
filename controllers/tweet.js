@@ -10,6 +10,7 @@ const Retweet = require("../models/Retweet");
 const { getDetailedTweets, fetchParents, fetchReplies } = require("../utils");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const { pushNotification } = require("../utils/pushNotification");
 
 const getAllTweets = async (req, res) => {
   const { userId } = req.params;
@@ -84,6 +85,14 @@ const createTweet = async (req, res) => {
     await User.findByIdAndUpdate(parentTweet.user, {
       $inc: { unreadNotificationsCount: 1 },
     });
+    // pushing notification to the user
+    pushNotification(
+      req,
+      parentTweet.user.toString(),
+      userId,
+      "reply",
+      `You got a reply from ${req.user.username}.`
+    );
   }
 
   res.status(StatusCodes.CREATED).json({ tweet });

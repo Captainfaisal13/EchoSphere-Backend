@@ -4,6 +4,7 @@ const Tweet = require("../models/Tweet");
 const { BadRequestError, NotFoundError } = require("../errors");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const { pushNotification } = require("../utils/pushNotification");
 
 const likeDislikeTweet = async (req, res) => {
   const { tweetId } = req.params;
@@ -18,14 +19,6 @@ const likeDislikeTweet = async (req, res) => {
 
   if (!dislike) {
     const like = await LikeTweet.create({ userId, tweetId });
-
-    console.log(
-      tweet.user.toString(),
-      userId,
-      tweet.user === userId,
-      tweet.user.toString() === userId
-    );
-
     // condition to not to notify the user itself
     if (tweet.user.toString() !== userId) {
       // creating notification
@@ -35,9 +28,18 @@ const likeDislikeTweet = async (req, res) => {
         type: "like",
         tweet: tweet._id,
       });
+
       await User.findByIdAndUpdate(tweet.user, {
         $inc: { unreadNotificationsCount: 1 },
       });
+      // pushing notification to the user
+      pushNotification(
+        req,
+        tweet.user.toString(),
+        userId,
+        "like",
+        `Your echo got liked by ${req.user.username}.`
+      );
     }
 
     return res.status(StatusCodes.CREATED).json({ like });
