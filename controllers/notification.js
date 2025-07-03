@@ -4,8 +4,14 @@ const User = require("../models/User");
 const { getDetailedTweets } = require("../utils");
 
 const getNotifications = async (req, res) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
   const { userId } = req.user;
   const notifications = await Notification.find({ recipient: userId })
+    .skip(skip)
+    .limit(limit)
     .sort("-createdAt")
     .populate("sender", "name username avatar")
     .populate("tweet")
@@ -26,6 +32,8 @@ const getNotifications = async (req, res) => {
   );
 
   res.status(StatusCodes.OK).json({
+    page,
+    limit,
     nbHits: detailedNotifications.length,
     response: detailedNotifications,
   });
