@@ -26,10 +26,12 @@ const {
   getSingleUser,
   showCurrentUser,
   updateUser,
+  searchUsers,
 } = require("../controllers/user");
 
 router.route("/").get(getAllUsers);
 router.route("/showMe").get(authenticationMiddleware, showCurrentUser);
+router.route("/search").get(searchUsers);
 router.route("/:id").get(getSingleUser);
 router
   .route("/updateUser")
@@ -40,5 +42,4 @@ router
     ],
     updateUser
   );
-
 module.exports = router;
